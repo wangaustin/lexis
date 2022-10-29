@@ -6,7 +6,6 @@
 import json
 import os
 import shutil
-import glob
 import time
 
 # enable viewing characters like Chinese and Japanese
@@ -117,9 +116,7 @@ os.rmdir(temp_folder)
 # -----------------------------------------------------------------------
 # going back to the directory where this python script resides
 # idk why i'm doing this but just in case
-print("Going back to start directory...")
 os.chdir(original_dir)
-original_dir = os.getcwd()
 
 print("\n" + "--- Execution time: %s seconds ---" % (time.time() - start_time) + "\n")
 
