@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # author: Austin Wang (awwang@igs)
 # website: www.austinwang.co
@@ -11,7 +11,6 @@ import shutil
 import time
 import sys
 
-# todo: refactor and put these constants into a config file
 _DEBUG = False
 _CACHED = False
 _LOCALIZATION_GAME_DIR = "Content/Localization/Game"
@@ -27,6 +26,8 @@ def find_all_by_key():
     # finds all json files in the current directory
     original_dir = os.getcwd()
     localization_dir = ""
+
+    # assuming this python script is placed in \Beef\Sheik
 
     # go to the localization/game folder
     try:
@@ -110,7 +111,7 @@ def find_all_by_key():
         
         # no translation found in the current language
         if not found:
-            curr_output = "***NO TRANSLATION!***"
+            curr_output = "*** NO TRANSLATION! ***"
         
         print(os.path.splitext(file)[0] + ":" + "\n" + "\t" + curr_output)
                 
@@ -120,14 +121,10 @@ def find_all_by_key():
 
     # -----------------------------------------------------------------------
     # delete temp folder
-    files = os.listdir(os.getcwd())
-
-    for file in files:
-        os.chmod(file, 0o0777)
-        os.remove(file)
-
-    os.chdir(localization_dir)
-    os.rmdir(temp_folder)
+    if not _CACHED:
+        delete_temp_folder(localization_dir, temp_folder)
+    else:
+        os.chdir(localization_dir)
 
     # -----------------------------------------------------------------------
     # going back to the directory where this python script resides
@@ -228,14 +225,10 @@ def print_localization_stats():
 
     # -----------------------------------------------------------------------
     # delete temp folder
-    files = os.listdir(os.getcwd())
-
-    for file in files:
-        os.chmod(file, 0o0777)
-        os.remove(file)
-
-    os.chdir(localization_dir)
-    os.rmdir(temp_folder)
+    if not _CACHED:
+        delete_temp_folder(localization_dir, temp_folder)
+    else:
+        os.chdir(localization_dir)
 
     # -----------------------------------------------------------------------
     # going back to the directory where this python script resides
@@ -245,9 +238,12 @@ def print_localization_stats():
     print("\n" + "--- Execution time: %s seconds ---" % (time.time() - start_time) + "\n")
     print("[stats] DONE.\n")
 
-def find_duplicate_by_source_text():
+def find_duplicate_by_source_text(bool_case_sensitive = True):
     # ask user which key they want to check the translations for
-    prompt = input("Input source text (case sensitive): ")
+    if (bool_case_sensitive):
+        prompt = input("Input source text (case sensitive): ")
+    else:
+        prompt = input("Input source text (case insensitive): ")
     
     # start timing execution
     start_time = time.time()
@@ -255,6 +251,8 @@ def find_duplicate_by_source_text():
     # finds all json files in the current directory
     original_dir = os.getcwd()
     localization_dir = ""
+
+    # assuming this python script is placed in \Beef\Sheik
 
     # go to the localization/game folder
     try:
@@ -319,14 +317,22 @@ def find_duplicate_by_source_text():
         
         # in unnamed subnamespace, add key to array if its source text is the same as prompt
         for i in curr_file_data["Children"]:
-            if i["Source"]["Text"] == prompt:
-                curr_output_array.append(i["Key"])
+            if not bool_case_sensitive:
+                if i["Source"]["Text"].lower() == prompt.lower():
+                    curr_output_array.append(i["Key"])
+            else:
+                if i["Source"]["Text"] == prompt:
+                    curr_output_array.append(i["Key"])
                 
         # in unnamed subnamespace, add key to array if its source text is the same as prompt
         for i in curr_file_data["Subnamespaces"]:
             for j in i["Children"]:
-                if j["Source"]["Text"] == prompt:
-                    curr_output_array.append(j["Key"])
+                if not bool_case_sensitive:
+                    if j["Source"]["Text"].lower() == prompt.lower():
+                        curr_output_array.append(j["Key"])
+                else:
+                    if j["Source"]["Text"] == prompt:
+                        curr_output_array.append(j["Key"])
         
         if (len(curr_output_array) > 0):
             print("All keys found:" + "\n\t")
@@ -409,8 +415,10 @@ def perform_command(command):
         case "stats" | "s":
             print_localization_stats()
             return
-        case "findbysourcetext" | "s":
-            find_duplicate_by_source_text()
+        case "findbysourcetext" | "d":
+            find_duplicate_by_source_text(True)
+        case "findbysourcetextcaseinsensitive" | "di":
+            find_duplicate_by_source_text(False)
         case "debug_on":
             _DEBUG = True
             print("Debug mode: ON")
