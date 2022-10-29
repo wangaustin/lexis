@@ -7,6 +7,7 @@
 import json
 import os
 import shutil
+import glob
 
 # # ask user which key they want to check the translations for
 # prompt = input("Input text string: ")
@@ -52,7 +53,7 @@ print("Current working dir: " + original_dir + "\n")
 
 # assuming this python script is placed in \Beef\Sheik
 
-# go to the localization folder
+# go to the localization/game folder
 try:
     os.chdir("Content/Localization/Game")
     localization_dir = os.getcwd()
@@ -63,28 +64,56 @@ except NotADirectoryError:
     print("Not a directory")
 except PermissionError:
     print("You do not have permissions to change to that dir")
+    
+# create a new temp folder
+temp_folder = "lexis-temp"
+os.mkdir(temp_folder)
 
 # find all folder names of the different languages
 list_subfolders_names = [f.name for f in os.scandir(os.getcwd()) if f.is_dir()]
 
+# -----------------------------------------------------------------------
+# create json files for archive files
 for subfolder in list_subfolders_names:
+    # skip the temp subfolder
+    if subfolder == temp_folder:
+        continue
+
+    # show which language we're working with
     print(subfolder)
+    # build the path where we retrieve the archive file
     archive_file_name = "\\" + subfolder + "\\Game.archive"
-    
     archive_file_path = localization_dir + archive_file_name
     print(archive_file_path)
     
+    # build the path where we store the json file (we store it in temp_folder)
     json_file_path = localization_dir + "{}"
-    json_file_path = json_file_path.format("\\" + subfolder + ".json")
+    json_file_path = json_file_path.format("\\" + temp_folder + "\\" + subfolder + ".json")
     print(json_file_path + "\n")
     
+    # create a temp corresponding json file for archive
     shutil.copy(archive_file_path, json_file_path)
+    
 
-# # create a temp corresponding json file for archive
-# shutil.copy("test.archive", localization_dir)
 
+# -----------------------------------------------------------------------
+# delete temp folder
+os.chdir(temp_folder)
+print("cur dir: " + os.getcwd())
+
+files = os.listdir(os.getcwd())
+
+for file in files:
+    os.chmod(file, 0o0777)
+    os.remove(file)
+
+os.chdir(localization_dir)
+os.rmdir(temp_folder)
+
+# -----------------------------------------------------------------------
 # going back to the directory where this python script resides
 print("\n" + "Going back to start directory...")
 os.chdir(original_dir)
 original_dir = os.getcwd()
 print("Current working dir: " + original_dir + "\n")
+
