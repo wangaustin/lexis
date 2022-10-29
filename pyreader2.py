@@ -41,6 +41,8 @@ import shutil
 
 # finds all json files in the current directory
 original_dir = os.getcwd()
+localization_dir = ""
+
 print("Current working dir: " + original_dir + "\n")
 
 # for file in os.listdir(current_dir):
@@ -53,6 +55,7 @@ print("Current working dir: " + original_dir + "\n")
 # go to the localization folder
 try:
     os.chdir("Content/Localization/Game")
+    localization_dir = os.getcwd()
     print("Current working dir again: " + os.getcwd() + "\n")
 except FileNotFoundError:
     print("Directory: does not exist")
@@ -66,12 +69,19 @@ list_subfolders_names = [f.name for f in os.scandir(os.getcwd()) if f.is_dir()]
 
 for subfolder in list_subfolders_names:
     print(subfolder)
+    archive_file_name = "\\" + subfolder + "\\Game.archive"
     
-testfile = open('test.archive')
-testfile.close()
+    archive_file_path = localization_dir + archive_file_name
+    print(archive_file_path)
+    
+    json_file_path = localization_dir + "{}"
+    json_file_path = json_file_path.format("\\" + subfolder + ".json")
+    print(json_file_path + "\n")
+    
+    shutil.copy(archive_file_path, json_file_path)
 
-# create a temp corresponding json file for archive
-shutil.copy("test.archive", "test.json")
+# # create a temp corresponding json file for archive
+# shutil.copy("test.archive", localization_dir)
 
 # going back to the directory where this python script resides
 print("\n" + "Going back to start directory...")
