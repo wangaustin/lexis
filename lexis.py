@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # author: Austin Wang (awwang@igs)
 # website: www.austinwang.co
@@ -26,8 +26,6 @@ def find_all_by_key():
     # finds all json files in the current directory
     original_dir = os.getcwd()
     localization_dir = ""
-
-    # assuming this python script is placed in \Beef\Sheik
 
     # go to the localization/game folder
     try:
@@ -256,8 +254,6 @@ def find_duplicate_by_source_text():
     # finds all json files in the current directory
     original_dir = os.getcwd()
     localization_dir = ""
-
-    # assuming this python script is placed in \Beef\Sheik
 
     # go to the localization/game folder
     try:
