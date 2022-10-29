@@ -3,8 +3,8 @@ A simple script with ready-to-use executable that makes your localization in Ure
 
 ## Functionalities
 - [x] [Find translations by LOCTEXT key](https://github.com/wangaustin/lexis/issues/1)
-- [x] Display locallization stats
-- [x] Display all keys for a source text (case sensitive)
-- [x] Toggle debug mode (ON: more verbose logging)
-- [ ] Enable caching of temporary JSON files (expected performance gain)
-- [ ] Package with a Graphical User Interface (GUI)
+- [ ] [Display locallization stats](https://github.com/wangaustin/lexis/issues/2)
+- [ ] [Display all keys for a source text (case sensitive)](https://github.com/wangaustin/lexis/issues/3)
+- [ ] [Toggle debug mode](https://github.com/wangaustin/lexis/issues/4)
+- [ ] [Enable caching of temporary JSON files (expected performance gain)](https://github.com/wangaustin/lexis/issues/5)
+- [ ] [Create a GUI (Graphical User Interface)](https://github.com/wangaustin/lexis/issues/6)
