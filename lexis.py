@@ -11,6 +11,7 @@ import shutil
 import time
 import sys
 
+# todo: refactor and put these constants into a config file
 _DEBUG = False
 _CACHED = False
 _LOCALIZATION_GAME_DIR = "Content/Localization/Game"
