@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # author: Austin Wang (awwang@igs)
 # website: www.austinwang.co
 # date: October 28, 2022
@@ -10,6 +12,7 @@ import time
 import sys
 
 _DEBUG = False
+_LOCALIZATION_GAME_DIR = "Content/Localization/Game"
 
 def find_all_by_key():
     # ask user which key they want to check the translations for
@@ -26,7 +29,7 @@ def find_all_by_key():
 
     # go to the localization/game folder
     try:
-        os.chdir("Content/Localization/Game")
+        os.chdir(_LOCALIZATION_GAME_DIR)
     except FileNotFoundError:
         print("ERROR: Directory does not exist, exiting.")
         sys.exit("Script terminated.")
@@ -63,8 +66,7 @@ def find_all_by_key():
         # print(archive_file_path)
         
         # build the path where we store the json file (we store it in temp_folder)
-        json_file_path = localization_dir + "{}"
-        json_file_path = json_file_path.format("\\" + temp_folder + "\\" + subfolder + ".json")
+        json_file_path = localization_dir + "\\" + temp_folder + "\\" + subfolder + ".json"
         
         if (_DEBUG):
             print(json_file_path + "\n")
@@ -143,11 +145,9 @@ def print_localization_stats():
     original_dir = os.getcwd()
     localization_dir = ""
 
-    # assuming this python script is placed in \Beef\Sheik
-
     # go to the localization/game folder
     try:
-        os.chdir("Content/Localization/Game")
+        os.chdir(_LOCALIZATION_GAME_DIR)
     except FileNotFoundError:
         print("ERROR: Directory does not exist, exiting.")
         sys.exit("Script terminated.")
@@ -177,12 +177,13 @@ def print_localization_stats():
         # build the path where we retrieve the archive file
         archive_file_name = "\\" + subfolder + "\\Game.archive"
         archive_file_path = localization_dir + archive_file_name
-        # print(archive_file_path)
+        if (_DEBUG):
+            print(archive_file_path)
         
         # build the path where we store the json file (we store it in temp_folder)
-        json_file_path = localization_dir + "{}"
-        json_file_path = json_file_path.format("\\" + temp_folder + "\\" + subfolder + ".json")
-        # print(json_file_path + "\n")
+        json_file_path = localization_dir + "\\" + temp_folder + "\\" + subfolder + ".json"
+        if (_DEBUG):
+            print(json_file_path + "\n")
         
         # create a temp corresponding json file for archive
         shutil.copy(archive_file_path, json_file_path)
@@ -258,7 +259,7 @@ def find_duplicate_by_source_text():
 
     # go to the localization/game folder
     try:
-        os.chdir("Content/Localization/Game")
+        os.chdir(_LOCALIZATION_GAME_DIR)
     except FileNotFoundError:
         print("ERROR: Directory does not exist, exiting.")
         sys.exit("Script terminated.")
@@ -358,9 +359,10 @@ def find_duplicate_by_source_text():
 
     # report execution time
     print("\n" + "--- Execution time: %s seconds ---" % (time.time() - start_time) + "\n")
-    print("[stats] DONE.\n")
+    print("[d] DONE.\n")
 
 
+########################################################################
 # start of the script
 print("\nWelcome to LEXIS!\n")
 
@@ -368,11 +370,16 @@ print("\nWelcome to LEXIS!\n")
 print("Setting things up...")
 print("Enabling viewing of characters like Chinese and Japanese...")
 os.system("chcp 936")
-print("Setup is complete.")
+print("Debug mode is: " + str(_DEBUG))
+print("Root folder of all localization subfolders is: " + _LOCALIZATION_GAME_DIR)
+print("Setup is COMPLETE.\n")
 print("LEXIS is ready for use.\n")
 
+# continuously listen to input
 while True:
     command = input(">")
+    command = command.lower()
+    
     if command == "quit" or command == 'q':
         sys.exit("Terminated script.")
     elif command == "h" or command == "help":
