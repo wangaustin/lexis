@@ -7,6 +7,7 @@ import sys
 import menubar
 
 import tkinter as tk
+from tkinter import *
 
 _DEBUG = False
 _CACHED = False
@@ -49,9 +50,8 @@ def find_all_by_key(prompt):
 
     # finds all json files in the current directory
     original_dir = os.getcwd()
+    print(original_dir)
     localization_dir = ""
-
-    # assuming this python script is placed in \Beef\Sheik
 
     # go to the localization/game folder
     try:
@@ -94,8 +94,7 @@ def find_all_by_key(prompt):
         # build the path where we store the json file (we store it in temp_folder)
         json_file_path = localization_dir + "\\" + temp_folder + "\\" + subfolder + ".json"
         
-        if (_DEBUG):
-            print(json_file_path + "\n")
+        # print(json_file_path + "\n")
         
         # create a temp corresponding json file for archive
         shutil.copy(archive_file_path, json_file_path)
@@ -135,8 +134,7 @@ def find_all_by_key(prompt):
         # no translation found in the current language
         if not found:
             curr_output = "*** NO TRANSLATION! ***"
-        
-        # lbl_result["text"]+=(os.path.splitext(file)[0] + ":" + "\n" + "\t" + curr_output + "\n")
+
         textbox.insert("end", (os.path.splitext(file)[0] + ":" + "\n" + "\t" + curr_output + "\n"))
                 
         curr_file.close()
@@ -159,6 +157,126 @@ def find_all_by_key(prompt):
 
     print("[f] DONE.\n")
 
+def find_duplicate_by_source_text(prompt, bool_case_sensitive = 1):
+    
+    textbox.configure(state="normal")
+    textbox.configure(wrap="none")
+    textbox.delete(1.0, "end")
+    # start timing execution
+    start_time = time.time()
+
+    # finds all json files in the current directory
+    original_dir = os.getcwd()
+    localization_dir = ""
+
+    # go to the localization/game folder
+    try:
+        os.chdir(_LOCALIZATION_GAME_DIR)
+    except FileNotFoundError:
+        print("ERROR: Directory does not exist, exiting.")
+        sys.exit("LEXIS terminated.")
+    except NotADirectoryError:
+        print("ERROR: Not a directory, exiting.")
+        sys.exit("LEXIS terminated.")
+    except PermissionError:
+        print("ERROR: You do not have permissions to change to that directory, exiting.")
+        sys.exit("LEXIS terminated.")
+        
+    localization_dir = os.getcwd()
+        
+    # create a new temp folder
+    temp_folder = _TEMP_FOLDER_NAME
+    os.mkdir(temp_folder)
+
+    # find all folder names of the different languages
+    list_subfolders_names = [f.name for f in os.scandir(os.getcwd()) if f.is_dir()]
+
+    # -----------------------------------------------------------------------
+    # create just one json file for just one archive file
+    for subfolder in list_subfolders_names:
+        # skip the temp subfolder
+        if subfolder == temp_folder:
+            continue
+        
+        # build the path where we retrieve the archive file
+        archive_file_name = "\\" + subfolder + "\\Game.archive"
+        archive_file_path = localization_dir + archive_file_name
+        # print(archive_file_path)
+        
+        # build the path where we store the json file (we store it in temp_folder)
+        json_file_path = localization_dir + "{}"
+        json_file_path = json_file_path.format("\\" + temp_folder + "\\" + subfolder + ".json")
+        # print(json_file_path + "\n")
+        
+        # create a temp corresponding json file for archive
+        shutil.copy(archive_file_path, json_file_path)
+        break
+
+    # still in localization_dir, so we need to change to temp_folder now
+    os.chdir(temp_folder)
+
+    # -----------------------------------------------------------------------
+    # find all translations for the key the user inputted
+    print("\n" + "---------------------------------")
+
+    # get all the json files for all the languages
+    all_json_files = os.listdir(os.getcwd())
+    
+    if (_DEBUG):
+        print("JSON file count: %s\n" % (len(all_json_files)))
+
+    for file in all_json_files:
+        curr_file = open(file, encoding="utf-16")
+        curr_file_data = json.load(curr_file)
+        curr_output_array = []
+        
+        # in unnamed subnamespace, add key to array if its source text is the same as prompt
+        for i in curr_file_data["Children"]:
+            if not bool_case_sensitive:
+                if i["Source"]["Text"].lower() == prompt.lower():
+                    curr_output_array.append(i["Key"])
+            else:
+                if i["Source"]["Text"] == prompt:
+                    curr_output_array.append(i["Key"])
+                
+        # in unnamed subnamespace, add key to array if its source text is the same as prompt
+        for i in curr_file_data["Subnamespaces"]:
+            for j in i["Children"]:
+                if not bool_case_sensitive:
+                    if j["Source"]["Text"].lower() == prompt.lower():
+                        curr_output_array.append(j["Key"])
+                else:
+                    if j["Source"]["Text"] == prompt:
+                        curr_output_array.append(j["Key"])
+        
+        if (len(curr_output_array) > 0):
+            textbox.insert("end", ("All keys found:" + "\n\n"))
+        else:
+            textbox.insert("end", ("*** NO KEY FOUND! ***"))
+        
+        for i in curr_output_array:
+            textbox.insert("end", (i + "\n"))
+                
+        curr_file.close()
+        break
+
+    textbox.configure(state="disabled")
+
+    # -----------------------------------------------------------------------
+    # delete temp folder
+    if not _CACHED:
+        delete_temp_folder(localization_dir, temp_folder)
+    else:
+        os.chdir(localization_dir)
+
+    # -----------------------------------------------------------------------
+    # going back to the directory where this python script resides
+    os.chdir(original_dir)
+
+    # report execution time
+    print("\n" + "--- Execution time: %s seconds ---" % (time.time() - start_time) + "\n")
+    print("[d] DONE.\n")
+    
 def print_localization_stats():
     # start timing execution
     start_time = time.time()
@@ -263,48 +381,119 @@ def print_localization_stats():
     print("[stats] DONE.\n")
 
 
-# Set up the window
-window = tk.Tk()
-window.title("LEXIS GUI")
-window.minsize(1000, 600)
+# --------------------- (setup root window) ----------------------------------
+root = tk.Tk()
+root.title("LEXIS")
+root.minsize(1000, 600)
+
+# set LEXIS logo
+if getattr(sys, 'frozen', False):
+    application_path = sys._MEIPASS
+elif __file__:
+    application_path = os.path.dirname(__file__)
+    
+icon_file = "lexis-logo.ico"
+root.iconbitmap(default=os.path.join(application_path, icon_file))
 
 #setup root window's menubar
-menu = menubar.MenuBar(window)
+menu = menubar.MenuBar(root)
 menu.setup()
 
-# window.resizable(width=False, height=False)
+# root.resizable(width=False, height=False)
 
-frm_prompt = tk.Frame(master=window)
-ent_lockey = tk.Entry(master=frm_prompt, width=50)
-lbl_temp = tk.Label(master=frm_prompt, text="Enter LOCTEXT key: ", font=(10))
+# --------------------- (setup frame layout) ----------------------------------
+# frame
+Frame_Title = tk.Frame(master=root)
+Frame_Title.grid(row=0, column=0, pady=2, sticky="w")
+
+Frame_Find_By_Key = tk.Frame(master=root)
+Frame_Find_By_Key.grid(row=1, column=0, pady=10, sticky="w")
+
+Frame_Show_Stats = tk.Frame(master=root)
+Frame_Show_Stats.grid(row=1, column=1, pady=10, sticky="w")
+
+Frame_Find_By_Source_Text = tk.Frame(master=root)
+Frame_Find_By_Source_Text.grid(row=2, column=0, pady=20, sticky="w")
+
+# Frame_New_Functionality = tk.Frame(master=root)
+# Frame_New_Functionality.grid(row=2, column=1, pady=20, sticky="w")
+
+Frame_Atomic_Operations = tk.Frame(master=root)
+Frame_Atomic_Operations.grid(row=3, column=0, pady=5, sticky="w")
+
+Frame_Output_Box = tk.Frame(master=root)
+Frame_Output_Box.grid(row=4, column=0, pady=5, sticky="w")
+
+
+# --------------------- FIND TRANSLATIONS ----------------------------------
+# input box
+ent_lockey = tk.Entry(master=Frame_Find_By_Key, width=50)
+# label
+lbl_temp = tk.Label(master=Frame_Find_By_Key, text="Enter LOCTEXT Key: ", font=(10))
 
 # using the .grid() geometry manager
-lbl_temp.grid(row=1, column=0, sticky="w")
-ent_lockey.grid(row=1, column=1, sticky="w")
+lbl_temp.grid(row=0, column=0, sticky="w")
+ent_lockey.grid(row=0, column=1, sticky="w")
 
-# Create the conversion Button and result display Label
+# Button (Find Translations)
 btn_find_by_key = tk.Button(
-    master=frm_prompt,
+    master=Frame_Find_By_Key,
     text="Find Translations",
     command=lambda: find_all_by_key(ent_lockey.get()),
     anchor="w",
     justify="left"
 )
+btn_find_by_key.grid(row=1, column=0, pady=2, sticky="w")
 
-# Create the conversion Button and result display Label
+
+# --------------------- FIND DUPLICATES ----------------------------------
+# label
+lbl_source_text = tk.Label(master=Frame_Find_By_Source_Text, text="Enter Source Text: ", font=(10))
+lbl_source_text.grid(row=0, column=0, sticky="w")
+# input box
+ent_source_text = tk.Entry(master=Frame_Find_By_Source_Text, width=50)
+ent_source_text.grid(row=0, column=1, sticky="w")
+
+# Button (Find Duplicates)
+btn_find_by_source_text = tk.Button(
+    master=Frame_Find_By_Source_Text,
+    text="Find Duplicates",
+    command=lambda: find_duplicate_by_source_text(ent_source_text.get(), checkbox_case_sensitive.get()),
+    anchor="w",
+    justify="left"
+)
+btn_find_by_source_text.grid(row=1, column=0, pady=2, sticky="w")
+
+# Checkbox (Case Sensitive)
+checkbox_case_sensitive = IntVar(value=0)
+
+checkbox_button = Checkbutton(
+    master=Frame_Find_By_Source_Text,
+    text="Case Sensitive",
+    variable = checkbox_case_sensitive,
+    onvalue=1,
+    offvalue=0,
+    height=2,
+    width=10
+)
+checkbox_button.grid(row=1, column=1, pady=2, sticky="w")
+
+# --------------------- (atomic operations, like "CLEAR OUTPUT") ----------------------------------
+# Button (Clear Output)
 btn_clear_output = tk.Button(
-    master=window,
+    master=Frame_Atomic_Operations,
     text="Clear Output",
     command=clear_output,
     anchor="w",
     justify="left"
 )
 
-textbox = tk.Text(master=window, height=1, borderwidth=0)
+btn_clear_output.grid(row=0, column=0, pady=2, sticky="w")
 
-frm_prompt.grid(row=1, column=0, pady=20, sticky="w")
-btn_find_by_key.grid(row=2, column=0, pady=2, sticky="w")
-btn_clear_output.grid(row=3, column=0, pady=2, sticky="w")
+
+# -------------------------------------------------------
+# Textbox (output)
+textbox = tk.Text(master=Frame_Output_Box, height=1, borderwidth=0)
 
 textbox.grid(row=4, column=0, pady=2, sticky="w")
 textbox["width"] = 140
@@ -312,8 +501,9 @@ textbox["height"] = 30
 textbox.configure(state="disabled")
 textbox.configure(inactiveselectbackground=textbox.cget("selectbackground"))
 
-# window.bind('<Control-q>', sys.exit)
-window.bind('<Control-e>', clear_output)
+root.bind('<Control-e>', clear_output)
+ent_lockey.bind('<Return>', lambda e: find_all_by_key(ent_lockey.get()))
+ent_source_text.bind('<Return>', lambda e: find_duplicate_by_source_text(ent_source_text.get(), checkbox_case_sensitive.get()))
 
 # Run the application
-window.mainloop()
+root.mainloop()
