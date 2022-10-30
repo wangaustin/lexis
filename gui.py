@@ -278,6 +278,9 @@ def find_duplicate_by_source_text(prompt, bool_case_sensitive = 1):
     print("[d] DONE.\n")
     
 def print_localization_stats():
+    textbox.configure(state="normal")
+    textbox.configure(wrap="none")
+    textbox.delete(1.0, "end")
     # start timing execution
     start_time = time.time()
 
@@ -359,11 +362,11 @@ def print_localization_stats():
                 else:
                     curr_translated_count += 1
         
-        lbl_result["text"]+=(os.path.splitext(file)[0] + ":" + "\n\tTranslated count:\t%s" %curr_translated_count + "\n\tUntranslated count:\t%s\n" %curr_untranslated_count)
+        textbox.insert("end", (os.path.splitext(file)[0] + ":" + "\n\tTranslated count:\t%s" %curr_translated_count + "\n\tUntranslated count:\t%s\n" %curr_untranslated_count))
                 
         curr_file.close()
 
-    print("---------------------------------" + "\n")
+    textbox.configure(state="disabled")
 
     # -----------------------------------------------------------------------
     # delete temp folder
@@ -384,7 +387,7 @@ def print_localization_stats():
 # --------------------- (setup root window) ----------------------------------
 root = tk.Tk()
 root.title("LEXIS")
-root.minsize(1000, 600)
+root.minsize(1000, 700)
 
 # set LEXIS logo
 if getattr(sys, 'frozen', False):
@@ -407,22 +410,22 @@ Frame_Title = tk.Frame(master=root)
 Frame_Title.grid(row=0, column=0, pady=2, sticky="w")
 
 Frame_Find_By_Key = tk.Frame(master=root)
-Frame_Find_By_Key.grid(row=1, column=0, pady=10, sticky="w")
+Frame_Find_By_Key.grid(row=1, column=0, pady=10, padx=(10,0), sticky="w")
 
-Frame_Show_Stats = tk.Frame(master=root)
-Frame_Show_Stats.grid(row=1, column=1, pady=10, sticky="w")
+Frame_Unimplemnted_Functionality = tk.Frame(master=root)
+Frame_Unimplemnted_Functionality.grid(row=1, column=1, pady=10, padx=(10,0),sticky="w")
 
 Frame_Find_By_Source_Text = tk.Frame(master=root)
-Frame_Find_By_Source_Text.grid(row=2, column=0, pady=20, sticky="w")
+Frame_Find_By_Source_Text.grid(row=2, column=0, pady=20, padx=(10,0),sticky="w")
 
 # Frame_New_Functionality = tk.Frame(master=root)
 # Frame_New_Functionality.grid(row=2, column=1, pady=20, sticky="w")
 
 Frame_Atomic_Operations = tk.Frame(master=root)
-Frame_Atomic_Operations.grid(row=3, column=0, pady=5, sticky="w")
+Frame_Atomic_Operations.grid(row=3, column=0, pady=5, padx=(10,0),sticky="w")
 
 Frame_Output_Box = tk.Frame(master=root)
-Frame_Output_Box.grid(row=4, column=0, pady=5, sticky="w")
+Frame_Output_Box.grid(row=4, column=0, pady=5, padx=(10,0),sticky="w")
 
 
 # --------------------- FIND TRANSLATIONS ----------------------------------
@@ -487,16 +490,31 @@ btn_clear_output = tk.Button(
     anchor="w",
     justify="left"
 )
-
 btn_clear_output.grid(row=0, column=0, pady=2, sticky="w")
 
+# Button (Show Stats)
+btn_clear_output = tk.Button(
+    master=Frame_Atomic_Operations,
+    text="Show Stats",
+    command=print_localization_stats,
+    anchor="w",
+    justify="left"
+)
+btn_clear_output.grid(row=0, column=1, pady=2, padx=(10,0), sticky="w")
 
+
+
+# scrollbar
+y_scrollbar = Scrollbar(Frame_Output_Box, orient="vertical")
+x_scrollbar = Scrollbar(Frame_Output_Box, orient="horizontal")
 # -------------------------------------------------------
 # Textbox (output)
-textbox = tk.Text(master=Frame_Output_Box, height=1, borderwidth=0)
+textbox = tk.Text(master=Frame_Output_Box, height=1, borderwidth=0, yscrollcommand=y_scrollbar.set, xscrollcommand=x_scrollbar.set)
+y_scrollbar.config(command=textbox.yview)
+x_scrollbar.config(command=textbox.xview)
 
-textbox.grid(row=4, column=0, pady=2, sticky="w")
-textbox["width"] = 140
+textbox.grid(row=0, column=0, pady=(2,0), sticky="w")
+textbox["width"] = 160
 textbox["height"] = 30
 textbox.configure(state="disabled")
 textbox.configure(inactiveselectbackground=textbox.cget("selectbackground"))
@@ -504,6 +522,11 @@ textbox.configure(inactiveselectbackground=textbox.cget("selectbackground"))
 root.bind('<Control-e>', clear_output)
 ent_lockey.bind('<Return>', lambda e: find_all_by_key(ent_lockey.get()))
 ent_source_text.bind('<Return>', lambda e: find_duplicate_by_source_text(ent_source_text.get(), checkbox_case_sensitive.get()))
+# ent_lockey.bind('<Control-x>', lambda x: print(root.focus_get()))
+
+
+y_scrollbar.grid(row=0, column=2, sticky="nse")
+x_scrollbar.grid(row=1, column=0, sticky="wse")
 
 # Run the application
 root.mainloop()
