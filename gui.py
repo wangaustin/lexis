@@ -269,7 +269,8 @@ window.title("LEXIS GUI")
 window.minsize(1000, 600)
 
 #setup root window's menubar
-menubar.setup(window)
+menu = menubar.MenuBar(window)
+menu.setup()
 
 # window.resizable(width=False, height=False)
 
