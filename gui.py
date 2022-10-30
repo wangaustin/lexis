@@ -3,6 +3,8 @@ import os
 import shutil
 import time
 import sys
+# custom menubar module
+import menubar
 
 import tkinter as tk
 
@@ -31,7 +33,7 @@ def delete_temp_folder(localization_dir, temp_folder):
         os.chdir("..")
         os.rmdir(temp_folder)
 
-def clear_output():
+def clear_output(event=None):
     textbox.configure(state="normal")
     textbox.delete(1.0, "end")
     textbox.configure(state="disabled")
@@ -260,48 +262,21 @@ def print_localization_stats():
     print("\n" + "--- Execution time: %s seconds ---" % (time.time() - start_time) + "\n")
     print("[stats] DONE.\n")
 
-def show_translations():
-    # celsius = (5 / 9) * (float(fahrenheit) - 32)
-    # lbl_result["text"] = f"{round(celsius, 2)} \N{DEGREE CELSIUS}"
-    lbl_result["text"] = ent_lockey.get()
-
-
 
 # Set up the window
 window = tk.Tk()
 window.title("LEXIS GUI")
 window.minsize(1000, 600)
 
-# create a menu bar
-menu_bar = tk.Menu(window)
-window.config(menu=menu_bar)
+#setup root window's menubar
+menubar.setup(window)
 
-# add a menu
-file_menu = tk.Menu(menu_bar, tearoff=False)
-
-file_menu.add_command(
-    label="Exit",
-    command=window.destroy
-)
-
-menu_bar.add_cascade(
-    label="File",
-    menu=file_menu
-)
-
-
-info = tk.Label(master=window, text="Welcome to LEXIS!\nAuthor: Austin Wang (awwang@igs)\nWebsite: www.austinwang.co", anchor="w", justify="left")
-info["text"] += "\n----------------------------"
-info.grid(row=0, column=0)
 # window.resizable(width=False, height=False)
 
-# Create the Fahrenheit entry frame with an Entry
-# widget and label in it
 frm_prompt = tk.Frame(master=window)
-ent_lockey = tk.Entry(master=frm_prompt, width=30)
-lbl_temp = tk.Label(master=frm_prompt, text="Enter LOCTEXT key: ", font=(12))
+ent_lockey = tk.Entry(master=frm_prompt, width=50)
+lbl_temp = tk.Label(master=frm_prompt, text="Enter LOCTEXT key: ", font=(10))
 
-# Layout the temperature Entry and Label in frm_prompt
 # using the .grid() geometry manager
 lbl_temp.grid(row=1, column=0, sticky="w")
 ent_lockey.grid(row=1, column=1, sticky="w")
@@ -314,7 +289,6 @@ btn_find_by_key = tk.Button(
     anchor="w",
     justify="left"
 )
-lbl_result = tk.Label(master=window, text="----------------------------\n", anchor="w", justify="left")
 
 # Create the conversion Button and result display Label
 btn_clear_output = tk.Button(
@@ -325,22 +299,20 @@ btn_clear_output = tk.Button(
     justify="left"
 )
 
-# Set up the layout using the .grid() geometry manager
-
 textbox = tk.Text(master=window, height=1, borderwidth=0)
 
-frm_prompt.grid(row=1, column=0, pady=2, sticky="w")
+frm_prompt.grid(row=1, column=0, pady=20, sticky="w")
 btn_find_by_key.grid(row=2, column=0, pady=2, sticky="w")
-btn_clear_output.grid(row=2, column=0, pady=2, sticky="w")
-lbl_result["font"] = (14)
-lbl_result["state"] = "normal"
-lbl_result.grid(row=3, column=0, pady=2, sticky="w")
+btn_clear_output.grid(row=3, column=0, pady=2, sticky="w")
 
-textbox.grid(row=4, column=0, sticky="w")
+textbox.grid(row=4, column=0, pady=2, sticky="w")
 textbox["width"] = 140
 textbox["height"] = 30
-textbox.configure(state="normal")
+textbox.configure(state="disabled")
 textbox.configure(inactiveselectbackground=textbox.cget("selectbackground"))
+
+# window.bind('<Control-q>', sys.exit)
+window.bind('<Control-e>', clear_output)
 
 # Run the application
 window.mainloop()
